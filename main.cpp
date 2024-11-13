@@ -1,156 +1,120 @@
 #include<iostream>
+#include <stack>
+#include <algorithm>
 using namespace std;
-
-struct student{
-    int roll_no;
-    string name;
-    float sgpa;
-};
-
-
-void bubbleSort(student arr[],int n){
-    for (int i=0;i<4;i++){
-        for (int j=0;j<4-i;j++){
-            if(arr[j].roll_no>arr[j+1].roll_no){
-                student a = arr[j];
-                arr[j]=arr[j+1];
-                arr[j+1]=a;
-            }
-        }
-    }
-}
-
-void insertionSort(student arr[],int n){
-    for(int i=1;i<n;i++){
-        student key=arr[i];
-        int j=i-1;
-        while(j>=0 && arr[j].name>key.name){
-            arr[j+1]=arr[j];
-            j=j-1;
-            
-            
-        }
-        arr[j+1]=key;
-    }
-}
-int partition(student arr[],int low,int high){
-    float pivot=arr[high].sgpa;
-    int i=low-1;
-    for(int j=low;j<high;j++){
-        if(arr[j].sgpa>pivot){
-            i++;
-            student temp=arr[i+1];
-            arr[i+1]=arr[high];
-            arr[high]=temp;
-            }
-        }
-        student temp=arr[i+1];
-        arr[i+1]=arr[high];
-        arr[high]=temp;
-        return i+1;
-    }
-
-void quicksort(student arr[],int low,int high){
-    if(low<high){
-        int pi=partition(arr,low,high);
-        quicksort(arr, low,pi-1);
-        quicksort(arr,pi+1,high);
-        
-    }
-}
-void searchgpa(student arr[],int n,float search){
-    bool found= false;
-    for(int i=0;i<n;i++){
-        if(arr[i].sgpa == search){
-            if(!found)
-            {
-                cout<<"STUDENT WITH SGPA"<<search<< endl;
-              found = true;
-            }
-            cout<<"NAME"<<arr[i].name<<endl;
-            
-        }
-    }
-    if(!found){
-        cout<<" NO STUDENT FIND FOR SGPA::"<<search<<endl;
-        
-    }
-}
-int binarysearch(student arr[],int size,string key){
-    int start =0;
-    int end = (size-1);
-    int mid= start+(end-start)/2;
-    while (start<end) {
-        if (arr[mid].name==key) {
-            return mid;
-        }
-        if (key>arr[mid].name) {
-            start = mid+1;
-        }
-        else{
-            end = mid-1;
-        }
-        mid= start + (end-start)/2;
-    }
-    return -1;
-}
-int main(){
-    student s[5];
-    for (int i=0;i<5;i++){
-        cout<<"ENTER STUDENT NUMBER :: "<<i+1<<endl;
-        cout<<"ENTER NAME ";
-        cin>>s[i].name;
-        cout<<"ENTER ROLL NUMBER";
-        cin>>s[i].roll_no;
-        cout<<"ENTER SGPA";
-        cin>>s[i].sgpa;
-        cout<<endl;
-    }
-    //output of bubble sort
-    bubbleSort(s,5);
-    cout<<" SORTED ROLL NUMBERS ARE :: "<<endl;
-    for(int i=0;i<5;i++){
-        cout<<s[i].roll_no<<endl;
-    }
-    //insertion sort
-    insertionSort(s,5);
-    cout<<"SORTED NAMES ARE :: "<<endl;
-    for(int i=0;i<5;i++){
-        cout<<s[i].name<<endl;
-    }
-    cout<<endl;
-    //output of quicksort
-    quicksort(s, 0, 5);
-    cout<<"TOP 3 STUDENTS ARE :: "<<endl;
-    for(int i=0;i<5;i++){
-        cout<<"NAME :: "<<s[i].name<<" ROLL NUMBER :: "<<s[i].roll_no<<" SGPA:: "<<s[i].sgpa<<endl;
-    }
-    //search acc to sgpa
-    float search;
-    cout<<"ENTER THE SGPA TO SEARCH"<<endl;
-    cin>>search;
-    cout<<endl;
-    searchgpa(s, 5, search);
-    cout<<"endl";
-    //binary search searching for perticular name
-    string key;
-    cout<<"ENTER THE NAME TO SEARCH"<<endl;
-    cin>>key;
-    cout<<endl;
-    insertionSort(s, 5);
-    int index;
-    index=binarysearch(s, 5, key);
-    
-    if (index!=-1) {
-        cout<<"STUDENT FOUND::"<<endl;
-        cout<<endl;
-        cout<<"NAME::"<<s[index].name<<endl;
-        cout<<"ROLL NUMBER::"<<s[index].roll_no<<endl;
-        cout<<"SGPA::"<<s[index].sgpa<<endl;
-    }
-    else{
-        cout<<"STUDENT NOT FOUND"<<endl;
-    }
+int precedence(char op)
+{
+    if (op == '+' || op == '-')
+        return 1;
+    if (op == '*' || op == '/')
+        return 2;
+    if (op == '^')
+        return 3;
     return 0;
 }
+string infixToPostfix(string infix)
+{
+    stack<char> st;
+    string postfix = "";
+    for (int i = 0; i < infix.length(); i++) {
+        char c = infix[i];
 
+        // If the character is a number or letter, add it to the postfix string
+        if (isalnum(c))
+            postfix += c;
+
+        // If the character is '(', push it to the stack
+        else if (c == '(')
+            st.push('(');
+        // If the character is ')', pop from the stack until '(' is encountered
+        else if (c == ')') {
+            while (st.top() != '(') {
+                postfix += st.top();
+                st.pop();
+            }
+            st.pop();
+        }
+        // If an operator is encountered
+        else {
+            while (!st.empty() && precedence(c) <= precedence(st.top())) {
+                postfix += st.top();
+                st.pop();
+            }
+            st.push(c);
+        }
+    }
+    // Pop all remaining operators from the stack
+    while (!st.empty()) {
+        postfix += st.top();
+        st.pop();
+    }
+
+    return postfix;
+}
+int evaluation_postfix(string postfix)
+{
+    stack<int> st2;
+    for (int i = 0; i < postfix.size(); i++) {
+        // If the character is a digit, push it to the stack
+        if (isdigit(postfix[i])) {
+            st2.push(postfix[i] - '0');
+        }
+        else {
+            int val1 = st2.top();
+            st2.pop();
+            int val2 = st2.top();
+            st2.pop();
+            switch (postfix[i]) {
+                case '+':
+                    st2.push(val2 + val1);
+                    break;
+                case '-':
+                    st2.push(val2 - val1);
+                    break;
+                case '*':
+                    st2.push(val2 * val1);
+                    break;
+                case '/':
+                    st2.push(val2 / val1);
+                    break;
+            }
+        }
+    }
+    return st2.top();
+}
+string infixToPrefix(string infix)
+{
+    long l = infix.size();
+    reverse(infix.begin(), infix.end());
+    for (int i = 0; i < l; i++) {
+        if (infix[i] == '(') {
+            infix[i] = ')';
+        }
+        else if (infix[i] == ')') {
+            infix[i] = '(';
+        }
+    }
+    string prefix = infixToPostfix(infix);
+    reverse(prefix.begin(), prefix.end());
+    return prefix;
+}
+int evaluation_infix(){
+    
+    return 0;
+}
+int main()
+{
+    string infix ;
+    cout<<"Input Your String :"<<endl;
+    cin>>infix;
+    
+    string postfix = infixToPostfix(infix);
+    string prefix = infixToPrefix(infix);
+    
+    cout << "Postfix Expression: " << postfix << endl;
+    cout << "Prefix Expression: " << prefix << endl;
+    
+    // Pass the postfix expression for evaluation
+    cout << "Evaluation of Postfix Expression: " << evaluation_postfix(postfix) << endl;
+    return 0;
+}
