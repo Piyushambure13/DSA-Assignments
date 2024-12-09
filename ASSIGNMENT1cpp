@@ -1,120 +1,138 @@
-#include<iostream>
-#include <stack>
-#include <algorithm>
+#include <iostream>
+#include <string>
 using namespace std;
-int precedence(char op)
-{
-    if (op == '+' || op == '-')
-        return 1;
-    if (op == '*' || op == '/')
-        return 2;
-    if (op == '^')
-        return 3;
-    return 0;
-}
-string infixToPostfix(string infix)
-{
-    stack<char> st;
-    string postfix = "";
-    for (int i = 0; i < infix.length(); i++) {
-        char c = infix[i];
 
-        // If the character is a number or letter, add it to the postfix string
-        if (isalnum(c))
-            postfix += c;
+// Define the structure for student data
+struct Student {
+    int rollNo;
+    string name;
+    float sgpa;
+};
 
-        // If the character is '(', push it to the stack
-        else if (c == '(')
-            st.push('(');
-        // If the character is ')', pop from the stack until '(' is encountered
-        else if (c == ')') {
-            while (st.top() != '(') {
-                postfix += st.top();
-                st.pop();
-            }
-            st.pop();
-        }
-        // If an operator is encountered
-        else {
-            while (!st.empty() && precedence(c) <= precedence(st.top())) {
-                postfix += st.top();
-                st.pop();
-            }
-            st.push(c);
-        }
+// Function to print student records
+void printStudents(Student students[], int n) {
+    cout << "\nRoll No\tName\tSGPA\n";
+    for (int i = 0; i < n; i++) {
+        cout << students[i].rollNo << "\t" << students[i].name << "\t" << students[i].sgpa << endl;
     }
-    // Pop all remaining operators from the stack
-    while (!st.empty()) {
-        postfix += st.top();
-        st.pop();
-    }
-
-    return postfix;
 }
-int evaluation_postfix(string postfix)
-{
-    stack<int> st2;
-    for (int i = 0; i < postfix.size(); i++) {
-        // If the character is a digit, push it to the stack
-        if (isdigit(postfix[i])) {
-            st2.push(postfix[i] - '0');
-        }
-        else {
-            int val1 = st2.top();
-            st2.pop();
-            int val2 = st2.top();
-            st2.pop();
-            switch (postfix[i]) {
-                case '+':
-                    st2.push(val2 + val1);
-                    break;
-                case '-':
-                    st2.push(val2 - val1);
-                    break;
-                case '*':
-                    st2.push(val2 * val1);
-                    break;
-                case '/':
-                    st2.push(val2 / val1);
-                    break;
+
+// Bubble Sort for arranging by roll number
+void bubbleSortByRollNo(Student students[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (students[j].rollNo > students[j + 1].rollNo) {
+                swap(students[j], students[j + 1]);
             }
         }
     }
-    return st2.top();
 }
-string infixToPrefix(string infix)
-{
-    long l = infix.size();
-    reverse(infix.begin(), infix.end());
-    for (int i = 0; i < l; i++) {
-        if (infix[i] == '(') {
-            infix[i] = ')';
+
+// Insertion Sort for arranging by name
+void insertionSortByName(Student students[], int n) {
+    for (int i = 1; i < n; i++) {
+        Student key = students[i];
+        int j = i - 1;
+        while (j >= 0 && students[j].name > key.name) {
+            students[j + 1] = students[j];
+            j--;
         }
-        else if (infix[i] == ')') {
-            infix[i] = '(';
+        students[j + 1] = key;
+    }
+}
+
+// Partition function for Quick Sort
+int partition(Student students[], int low, int high) {
+    float pivot = students[high].sgpa;
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (students[j].sgpa > pivot) {
+            i++;
+            swap(students[i], students[j]);
         }
     }
-    string prefix = infixToPostfix(infix);
-    reverse(prefix.begin(), prefix.end());
-    return prefix;
+    swap(students[i + 1], students[high]);
+    return i + 1;
 }
-int evaluation_infix(){
-    
-    return 0;
+
+// Quick Sort function
+void quickSortBySGPA(Student students[], int low, int high) {
+    if (low < high) {
+        int pi = partition(students, low, high);
+        quickSortBySGPA(students, low, pi - 1);
+        quickSortBySGPA(students, pi + 1, high);
+    }
 }
-int main()
-{
-    string infix ;
-    cout<<"Input Your String :"<<endl;
-    cin>>infix;
-    
-    string postfix = infixToPostfix(infix);
-    string prefix = infixToPrefix(infix);
-    
-    cout << "Postfix Expression: " << postfix << endl;
-    cout << "Prefix Expression: " << prefix << endl;
-    
-    // Pass the postfix expression for evaluation
-    cout << "Evaluation of Postfix Expression: " << evaluation_postfix(postfix) << endl;
+
+// Search students by SGPA
+void searchBySGPA(Student students[], int n, float sgpa) {
+    bool found = false;
+    cout << "\nStudents with SGPA " << sgpa << ":\n";
+    for (int i = 0; i < n; i++) {
+        if (students[i].sgpa == sgpa) {
+            cout << students[i].rollNo << "\t" << students[i].name << "\t" << students[i].sgpa << endl;
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No student found with SGPA " << sgpa << ".\n";
+    }
+}
+
+// Binary Search by Name
+void binarySearchByName(Student students[], int n, string name) {
+    int low = 0, high = n - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (students[mid].name == name) {
+            cout << "\nStudent found:\n";
+            cout << students[mid].rollNo << "\t" << students[mid].name << "\t" << students[mid].sgpa << endl;
+            return;
+        } else if (students[mid].name < name) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    cout << "\nStudent with name " << name << " not found.\n";
+}
+
+int main() {
+    const int n = 15;
+    Student students[n] = {
+        {101, "Aman", 9.1}, {102, "Rohit", 8.5}, {103, "Neha", 9.8},
+        {104, "Kiran", 7.4}, {105, "Sita", 8.9}, {106, "Ankit", 6.8},
+        {107, "Manoj", 8.7}, {108, "Priya", 9.2}, {109, "Vikas", 7.5},
+        {110, "Radha", 8.3}, {111, "Meera", 8.6}, {112, "Krish", 7.8},
+        {113, "Gopal", 6.9}, {114, "Anjali", 9.0}, {115, "Rahul", 7.7}
+    };
+
+    // A. Sort by roll number using Bubble Sort
+    bubbleSortByRollNo(students, n);
+    cout << "\nStudents sorted by Roll Number:";
+    printStudents(students, n);
+
+    // B. Sort by name using Insertion Sort
+    insertionSortByName(students, n);
+    cout << "\nStudents sorted by Name:";
+    printStudents(students, n);
+
+    // C. Sort by SGPA using Quick Sort and print top 10
+    quickSortBySGPA(students, 0, n - 1);
+    cout << "\nTop 10 Students by SGPA:";
+    printStudents(students, 10);
+
+    // D. Search students by SGPA
+    float searchSGPA;
+    cout << "\nEnter SGPA to search: ";
+    cin >> searchSGPA;
+    searchBySGPA(students, n, searchSGPA);
+
+    // E. Search student by name using Binary Search
+    string searchName;
+    cout << "\nEnter Name to search: ";
+    cin >> searchName;
+    binarySearchByName(students, n, searchName);
+
     return 0;
 }
